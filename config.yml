@@ -1,0 +1,13 @@
+technical_fit_weight: 0.50
+
+recruitability_weight: 0.25
+
+activity_weight: 0.15
+
+trust_weight: 0.10
+
+skill_inflation_penalty: 15
+
+timeline_penalty: 30
+
+contradiction_penalty: 15
