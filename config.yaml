@@ -1,0 +1,10 @@
+paths:
+  jd_input: "data/jd.txt"
+  candidate_input: "data/sample_candidates.json"
+  output_dir: "outputs/"
+  models_dir: "models/"
+
+pipeline:
+  top_k: 100
+  random_seed: 42
+  device: "cpu"

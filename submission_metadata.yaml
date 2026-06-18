@@ -1,96 +1,71 @@
-# Redrob Hackathon — Submission 
+# Redrob Hackathon — Submission Metadata
 # Stage 3 review uses this file to verify your portal metadata.
 
 # ============================================================================
 # Team identity
 # ============================================================================
-team_name: "MCAHeist" # Used in leaderboard and announcements
+team_name: "MCAHeist"
+track: "AI Matchmaker"
 
 primary_contact:
-  name: Divyanshu Tiwari
-  email: tdivyanshu331@gmail.com
-  phone: +91-8922921012        # Used for top-50 / top-10 outreach
+  name: "Divyanshu Tiwari"
+  email: "tdivyanshu331@gmail.com"
+  phone: "+91-8922921012"
 
 team_members:
-  - name: Divyanshu Tiwari
-    email: tdivyanshu331@gmail.com
-    role: UI & Deployment Lead     
-
-  - name: Anupriya Kumari Ranjan
-    email: anu89ranjan89@gmail.com
-    role: Data and Evaluation Lead
-
-  - name: Lakshman Kumar
-    email: lakshmankumar2603@gmail.com
-    role: Feature Engineering and Modeling Lead
-  # Add more members as needed; solo participants list just one member
+  - name: "Divyanshu Tiwari"
+    email: "tdivyanshu331@gmail.com"
+    role: "UI & Deployment Lead"
+  - name: "Anupriya Kumari Ranjan"
+    email: "anu89ranjan89@gmail.com"
+    role: "Data and Evaluation Lead"
+  - name: "Lakshman Kumar"
+    email: "lakshmankumar2603@gmail.com"
+    role: "Feature Engineering and Modeling Lead"
 
 # ============================================================================
 # Code and reproducibility
 # ============================================================================
-github_repo: https://github.com/anu89ranjan89/redrob-hackathon-2026
-# Required. Must be reachable. Private repos OK if you can grant organizer
-# access at Stage 3 (the email to add will be communicated then).
-
-#sandbox_link: "https://huggingface.co/spaces/YOUR_USERNAME/redrob-ranker"
-# Required. A working hosted environment where the ranker can be run on a small
-# candidate sample. See Section 10.5 of submission_spec.md for acceptable
-# platforms (HuggingFace Spaces, Streamlit Cloud, Replit, Colab, Docker, Binder).
-
-#reproduce_command: "python rank.py --candidates ./candidates.jsonl --out ./submission.csv"
-# The single command that produces submission.csv from candidates.jsonl.
-# Should run end-to-end within 5 minutes on CPU with 16GB RAM and no network.
+github_repo: "https://github.com/anu89ranjan89/redrob-hackathon-2026"
+sandbox_link: "https://huggingface.co/spaces/MCAHeist/redrob-ranker"
+reproduce_command: "python run.py --jd data/jd.txt --input data/sample_candidates.json --output outputs/submission.csv"
 
 # ============================================================================
 # Compute environment
 # ============================================================================
 compute:
-  platform: "Local Windows Laptop"                    # Or: "AWS EC2 c5.4xlarge", "Local Linux box", etc.
-  cpu_cores: 8                                  # Number of CPU cores used
-  ram_gb: 16                                    # Available RAM in GB
-  python_version: "3.11.4"                      # python --version
-  os: Windows 11                           
-
-
-  uses_gpu_for_inference: false                 # Must be false — see compute constraints
-  has_network_during_ranking: false             # Must be false — no API calls during ranking
-  pre_computation_required: false               # true if you pre-compute embeddings or train models offline
-  pre_computation_time_minutes: 0               # Approximate, if applicable
+  platform: "Local Windows Laptop"
+  cpu_cores: 8
+  ram_gb: 16
+  python_version: "3.11.4"
+  os: "Windows 11"
+  uses_gpu_for_inference: false
+  has_network_during_ranking: false
+  pre_computation_required: false
+  pre_computation_time_minutes: 0
 
 # ============================================================================
 # AI tools declaration
 # ============================================================================
-# Transparency only — declared use is NOT penalized. Be honest. Stage 5 interview
-# may verify these declarations against your code; declarations that contradict
-# your code or your interview are flagged.
 ai_tools_used:
+  - "Gemini"
   - "ChatGPT"
-  - ""        # e.g. for architecture discussion, code review
-  # Other options: "ChatGPT", "Cursor", "Gemini", "Codeium", "Other", "None"
 
 ai_usage_summary: |
-  Briefly describe how AI tools were used. Examples:
-  - "Used ChatGPT for code review and architectural discussion.
-     No candidate data was fed to any LLM."
+  Used Gemini for Streamlit UI generation, refactoring validation scripts, and Jinja2 templating. Used ChatGPT for code review and architectural discussion. No candidate data was sent to external LLMs during pipeline runs.
 
 # ============================================================================
-# Approach summary (optional but recommended)
+# Approach summary
 # ============================================================================
 methodology_summary: |
-  methodology_summary: |
-  Hybrid candidate ranking system combining
-  skill matching, career history analysis,
-  behavioral signals, recruitability metrics,
-  honeypot detection, and explainable AI ranking.
-  Candidates are scored using technical fit,
-  activity, trust, and recruitability signals.
+  Hybrid candidate ranking system combining skill matching, career history analysis, behavioral signals, recruitability metrics, honeypot detection, and explainable AI ranking. Candidates are scored using technical fit, activity, trust, and recruitability signals, with rule-based Jinja2 explanations.
 
 # ============================================================================
 # Declarations
 # ============================================================================
 declarations:
-  read_submission_spec: true        # I have read submission_spec.md in full
-  code_is_original_work: true       # My code is my team's original work (using AI as a tool is fine)
-  no_collusion: true                # I have not coordinated my submission with other teams
-  honeypot_check_done: true        # OPTIONAL — set true if you explicitly checked for honeypots in your ranking
-  reproduction_tested: true         # I have tested that my reproduce_command runs end-to-end
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: true
+  reproduction_tested: true

@@ -1,0 +1,12 @@
+pandas
+numpy
+scikit-learn
+sentence-transformers
+faiss-cpu
+rapidfuzz
+spacy
+rank-bm25
+joblib
+jinja2
+pyyaml
+streamlit
