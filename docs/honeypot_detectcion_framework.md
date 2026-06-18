@@ -119,3 +119,23 @@ High Confidence:
 - Impossible timeline
 - Severe skill inflation
 - Major contradictions
+
+
+## Title-Skill Mismatch
+
+Example:
+
+Title:
+HR Manager
+
+Skills:
+PyTorch
+Transformers
+LLMs
+Vector DB
+
+Risk:
+Possible keyword stuffing
+
+Penalty:
+-20
