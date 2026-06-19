@@ -197,7 +197,6 @@ Examples:
 
 ---
 
-<<<<<<< HEAD
 ## 👥 Team Alpha Members
 * **Anupriya Ranjan (Data):** JD Intelligence, relevance rubrics, and data processing.
 * **Lakshman Kumar (Scoring):** Feature engineering, candidate scoring, and ranking engine.
@@ -262,4 +261,3 @@ Optimizations include:
 ## Notes
 
 This implementation is a direct refactor of the notebook workflow into a maintainable production-style pipeline while preserving the original ranking behavior.
->>>>>>> 2cbbbaf1 (Refactor candidate ranking pipeline into production-ready modules)
