@@ -1,8 +1,8 @@
-# 🚀 Redrob Hackathon 2026 — Team Alpha
+# 🚀 Redrob Hackathon 2026 — Team MCA_Heist
 
 ## AI-Powered Candidate Ranking System
 
-Welcome to the official repository of **Team Alpha** for the Redrob Hackathon 2026. This project implements a high-performance, deterministic candidate ranking system that prioritizes matching accuracy, behavioral signal intelligence, and explainable AI.
+Welcome to the official repository of **MCA_Heist Team** for the Redrob Hackathon 2026. This project implements a high-performance, deterministic candidate ranking system that prioritizes matching accuracy, behavioral signal intelligence, and explainable AI.
 
 ---
 
@@ -55,8 +55,8 @@ Our candidate discovery and ranking system follows a robust **3-step pipeline** 
 ---
 
 ## 👥 Team Alpha Members
-* **Member 1 (Data):** JD Intelligence, relevance rubrics, and data processing.
-* **Member 2 (Scoring):** Feature engineering, candidate scoring, and ranking engine.
+* **Anupriya Ranjan (Data):** JD Intelligence, relevance rubrics, and data processing.
+* **Lakshman Kumar (Scoring):** Feature engineering, candidate scoring, and ranking engine.
 * **Divyanshu Tiwari (Packaging & Reproducibility):** Pipeline assembly, validation logic, templates, and reproducibility verification.
 
 ---
