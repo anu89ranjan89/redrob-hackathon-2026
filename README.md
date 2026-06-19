@@ -1,59 +1,203 @@
 # 🚀 Redrob Hackathon 2026 — Team MCA_Heist
+# Redrob Hackathon 2026 – Candidate Ranking System
 
-## AI-Powered Candidate Ranking System
+A production-style Python implementation of the candidate ranking pipeline developed from the feature engineering notebook.
 
 Welcome to the official repository of **MCA_Heist Team** for the Redrob Hackathon 2026. This project implements a high-performance, deterministic candidate ranking system that prioritizes matching accuracy, behavioral signal intelligence, and explainable AI.
+The system processes candidate profiles, engineers ranking features, computes relevance scores, and produces a ranked list of candidates for AI/ML-focused roles.
 
 ---
 
-## ⚡ Quick Start
+## Project Structure
 
-### 1. Environment Setup
-Install the required packages in your Python environment:
+```text
+.
+├── app.py
+├── main.py
+├── feature_engineering.py
+├── ranking.py
+├── utils.py
+├── requirements.txt
+├── README.md
+│
+├── data/
+│   ├── candidate.jsonl
+│   ├── candidates.jsonl
+│   ├── candidate_schema.json
+│   ├── jd.txt
+│   ├── sample_candidates.json
+│   └── ...
+│
+├── outputs/
+│   ├── top_candidates.csv
+│   └── submission.csv
+│
+├── notebooks/
+│   ├── feature_engineering.ipynb
+│   ├── evaluation.ipynb
+│   └── ...
+│
+├── docs/
+│   ├── feature_dictionary.md
+│   ├── scoring_examples.md
+│   ├── system_architecture.md
+│   └── ...
+│
+├── scripts/
+│   ├── pipeline.py
+│   ├── validate.py
+│   └── ...
+│
+└── venv/
+```
+
+---
+
+## Components
+
+### `feature_engineering.py`
+
+Generates all ranking features:
+
+- Candidate text construction
+- Experience scoring
+- Title relevance scoring
+- Behavioral scoring
+- Retrieval keyword scoring
+- Production signal scoring
+- Technical production scoring
+
+### `ranking.py`
+
+Responsible for:
+
+- Final score calculation
+- Candidate ranking
+- Top-N candidate selection
+
+### `utils.py`
+
+Shared utilities:
+
+- JSONL loading
+- Logging configuration
+- Text cleaning
+- Career history extraction
+
+### `main.py`
+
+Pipeline entry point that:
+
+1. Loads candidate data
+2. Creates engineered features
+3. Computes final scores
+4. Produces ranked candidate output
+
+---
+
+## Installation
+
+Create and activate the virtual environment:
+
+```bash
+source venv/bin/activate
+```
+
+Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Run Pipeline Command
-To run the candidate ranking pipeline end-to-end, execute the following command at the root directory:
+---
+
+## Running the Pipeline
+
+Default run:
+
 ```bash
-python run.py --jd data/jd.txt --input data/sample_candidates.json --output outputs/submission.csv
+python main.py
 ```
-This script runs the full ranking pipeline, generates the output, validates it against official rules, and exports it to `outputs/submission.csv`.
+
+This will:
+
+- Read: `data/candidate.jsonl`
+- Generate: `outputs/top_candidates.csv`
 
 ---
 
-## 🏗️ Architecture & Pipeline
+### Custom Input / Output
 
-Our candidate discovery and ranking system follows a robust **3-step pipeline** built for speed and explainability:
-
-### Step 1: Input Parsing
-* Loads candidate datasets from JSON arrays (using the official candidate profile and Redrob signals schemas).
-* Parses job description requirements from target text files.
-
-### Step 2: Hybrid Feature Scoring
-* Computes multi-dimensional matches across:
-  * **Technical Fit (50%)**: Skill overlap, proficiency duration, and experience duration matching.
-  * **Recruitability (25%)**: Candidate response rates, availability timeline, and notice periods.
-  * **Activity (15%)**: Recent recruiter profile views, applications, and search appearances.
-  * **Trust (10%)**: Email/phone verification status, profile completeness, and LinkedIn connectivity.
-* Scores are normalized and sorted non-increasingly by rank. In the event of a score tie, candidate IDs are sorted in ascending order (`CAND_XXXXXXX` alphabetical sort) to satisfy the challenge tie-breaker rules.
-
-### Step 3: Deterministic Reasoning & Output Validation
-* **Rule-Based Reasoning:** Utilizes a pre-compiled Jinja2 template at the module level to generate a 1-2 sentence human-readable explanation for each candidate's rank. This method uses official Redrob behavioral signals (`profile_completeness_score`, `recruiter_response_rate`, `willing_to_relocate`, and `github_activity_score`) to produce natural, fluent text summaries without LLM hallucination risks.
-* **Strict Validation:** Automatically validates the output using `validate_submission(df)` to ensure that columns, row count (exactly 100), candidate ID formats, rank order, and score monotonicity perfectly comply with the challenge specifications.
+```bash
+python main.py \
+  --input data/candidates.jsonl \
+  --output outputs/top_candidates.csv \
+  --top-n 100
+```
 
 ---
 
-## ⚙️ Compliance & Reproducibility
+## Ranking Features
 
-* **100% CPU Only:** The pipeline runs completely on standard CPU environments with no GPU/TPU requirements, making it highly resource-friendly.
-* **Guaranteed Determinism:** All random states are constrained using fixed seeds (`random_seed: 42`), ensuring that every run yields identical results.
-* **Zero Hallucination Explanations:** Explanations are strictly fact-based and generated using rule-based Jinja2 templates instead of stochastic LLM APIs, preventing any hallucination and keeping runtime to milliseconds.
-* **Zero Network Calls:** No external network requests are made during pipeline execution, fully complying with compute isolation guidelines.
+### Experience Score
+
+Targets candidates with approximately 5–9 years of experience.
+
+### Title Score
+
+Scores current job titles based on relevance to:
+
+- Recommendation Systems
+- Search
+- Machine Learning
+- AI Engineering
+- Data Engineering
+- Backend Engineering
+
+### Behavior Score
+
+Combines:
+
+- Open-to-work status
+- Recruiter response rate
+- Notice period
+- Interview completion rate
+- Offer acceptance rate
+
+### Retrieval Score
+
+Keyword-based relevance score using:
+
+- Retrieval systems
+- Search systems
+- Embeddings
+- Vector databases
+- LLM tooling
+- Evaluation frameworks
+
+### Production Score
+
+Measures evidence of real-world delivery using signals such as:
+
+- Built
+- Shipped
+- Deployed
+- Led
+- Designed
+
+### Technical Production Score
+
+Measures technical production experience by identifying technical actions occurring near technical system concepts.
+
+Examples:
+
+- Built retrieval system
+- Designed ranking model
+- Shipped recommendation pipeline
 
 ---
 
+<<<<<<< HEAD
 ## 👥 Team Alpha Members
 * **Anupriya Ranjan (Data):** JD Intelligence, relevance rubrics, and data processing.
 * **Lakshman Kumar (Scoring):** Feature engineering, candidate scoring, and ranking engine.
@@ -61,3 +205,61 @@ Our candidate discovery and ranking system follows a robust **3-step pipeline** 
 
 ---
 Built with 💙 for the Redrob Hackathon 2026.
+=======
+## Final Ranking Formula
+
+The final score preserves the notebook scoring logic:
+
+```text
+0.20 × experience_score
++ 0.20 × title_score
++ 0.10 × behavior_score
++ 0.10 × production_score
++ 0.15 × technical_production_score
++ 0.25 × retrieval_score
+```
+
+No ranking weights or business rules were modified during the Python refactor.
+
+---
+
+## Output
+
+The pipeline generates:
+
+```text
+outputs/top_candidates.csv
+```
+
+Columns include:
+
+- candidate_id
+- profile_current_title
+- profile_years_of_experience
+- experience_score
+- title_score
+- behavior_score
+- production_score
+- technical_production_score
+- retrieval_score
+- final_score
+
+---
+
+## Performance
+
+Tested on datasets containing approximately 100,000 candidate profiles.
+
+Optimizations include:
+
+- Reduced DataFrame copying
+- Precompiled regular expressions
+- Vectorized Pandas operations where possible
+- Lower memory overhead during feature generation
+
+---
+
+## Notes
+
+This implementation is a direct refactor of the notebook workflow into a maintainable production-style pipeline while preserving the original ranking behavior.
+>>>>>>> 2cbbbaf1 (Refactor candidate ranking pipeline into production-ready modules)

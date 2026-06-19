@@ -1,2 +1,5 @@
 data/*.jsonl
 data/*.gz
+venv
+outputs/top_candidates.csv
+__pycache__/
