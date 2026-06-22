@@ -1,4 +1,4 @@
-data/*.jsonl
+data/candidates.jsonl
 data/*.gz
 venv
 outputs/top_candidates.csv

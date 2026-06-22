@@ -1,0 +1,260 @@
+Job Description: Senior Product Manager — Core Payments (Founding Product Team)
+
+Company: FinFlow Technologies (Series B FinTech Infrastructure Platform)
+
+Location: Bengaluru/Hyderabad, India (Hybrid)
+
+Employment Type: Full-time
+
+Experience Required: 5–10 years (see "what we mean by this" below)
+
+Let's be honest about this role
+
+Most Product Manager JDs read like someone copy-pasted a list of buzzwords from LinkedIn.
+
+We're going to try something different.
+
+We are building infrastructure that moves money between businesses, banks, payment gateways, and financial institutions. The product is complicated. The stakeholders are complicated. The regulations are complicated.
+
+The role is not.
+
+We need someone who can figure out what matters and ignore what doesn't.
+
+If your idea of product management is spending weeks polishing PRDs while engineers wait for decisions, this isn't the role.
+
+If your idea of product management is shipping features without understanding customer pain points, this also isn't the role.
+
+We need someone who can move comfortably between:
+
+Deep customer understanding.
+Ruthless execution.
+
+The best PMs we've worked with don't see those as separate skills.
+
+What you'd actually be doing
+
+The high-level mandate:
+
+Own the end-to-end experience of our payments infrastructure products.
+
+That means understanding merchant pain points, prioritizing roadmap decisions, defining product strategy, and working with engineering teams to ship solutions.
+
+In practical terms, your first 90 days will probably look like:
+
+Weeks 1–3
+
+Understand our products, customers, and operational bottlenecks.
+
+Talk to merchants.
+
+Talk to support teams.
+
+Talk to engineers.
+
+Figure out where the real problems are.
+
+Weeks 4–8
+
+Define and launch at least one high-impact product initiative.
+
+Not a roadmap.
+
+Not a presentation.
+
+A shipped product improvement.
+
+Weeks 9–12
+
+Build a measurable framework for product success.
+
+Customer retention.
+
+Feature adoption.
+
+Transaction success rates.
+
+Revenue impact.
+
+Whatever matters most.
+
+Your job is making sure we stop arguing about opinions and start looking at evidence.
+
+What we mean by "5–10 years"
+
+The number is approximate.
+
+We've hired excellent PMs with 4 years of experience and rejected PMs with 15.
+
+We're evaluating judgment, not age.
+
+That said, here are the disqualifiers we actually apply:
+
+If you've only worked on internal tools
+
+We will probably not move forward.
+
+This role requires understanding external customer behavior.
+
+If you've spent most of your career writing documents but rarely shipping products
+
+We will probably not move forward.
+
+We care about outcomes.
+
+If your experience is primarily project management rather than product management
+
+We will probably not move forward.
+
+Managing timelines is important.
+
+It's not the job.
+
+The skills inventory (please read carefully)
+Things you absolutely need
+Experience shipping customer-facing products
+
+Not prototypes.
+
+Not experiments.
+
+Real products used by real customers.
+
+Strong product analytics skills
+
+You should be comfortable with:
+
+Funnel analysis
+Cohort analysis
+Retention metrics
+A/B testing
+Product experimentation
+Excellent stakeholder management
+
+You'll work with:
+
+Engineering
+Design
+Operations
+Sales
+Compliance
+Leadership
+
+If cross-functional collaboration frustrates you, this role will be frustrating.
+
+Strong written communication
+
+We write a lot.
+
+Roadmaps.
+
+Specs.
+
+Strategy docs.
+
+Decision memos.
+
+Writing clearly is a core part of the job.
+
+Things we'd like you to have but won't reject you for
+Experience in FinTech
+Payments experience
+Marketplace product experience
+SQL proficiency
+Exposure to AI-powered products
+Startup experience
+Things we explicitly do NOT want
+Feature factory PMs
+
+If your success metric is "number of features shipped," we're not a fit.
+
+Framework enthusiasts
+
+If every conversation becomes a debate about RICE, MoSCoW, OKRs, or the latest PM framework, we're probably not a fit.
+
+Frameworks are tools.
+
+Not products.
+
+Career consultants
+
+If your resume shows a new company every 12–18 months for title progression, we'll be cautious.
+
+We're building for the long term.
+
+PMs who avoid customers
+
+If you've gone months without talking to actual users, this role will be uncomfortable.
+
+On location, compensation, and logistics
+Location
+
+Bengaluru or Hyderabad preferred.
+
+We're flexible for exceptional candidates.
+
+Notice period
+
+Immediate to 45 days preferred.
+
+Longer notice periods are still considered but will face a higher hiring bar.
+
+Travel
+
+Quarterly travel for team offsites and customer visits.
+
+The vibe check
+
+Culture-fit matters more than checklist-fit.
+
+We work asynchronously.
+
+We document decisions.
+
+We disagree openly.
+
+We make decisions quickly.
+
+We change our minds when evidence changes.
+
+If you need perfect clarity before acting, you'll struggle here.
+
+If you enjoy ambiguity and ownership, you'll thrive.
+
+How to read between the lines
+
+The ideal candidate we're imagining is roughly:
+
+6–8 years of product management experience.
+Has owned a customer-facing product from conception to scale.
+Strong analytical mindset.
+Comfortable making decisions with incomplete information.
+Has worked closely with engineering teams.
+Understands business tradeoffs, not just product tradeoffs.
+Located in or willing to relocate to Bengaluru or Hyderabad.
+Actively exploring opportunities and likely to engage with recruiters.
+
+We know this is a narrow profile.
+
+That's intentional.
+
+We'd rather interview 20 strong candidates than 500 weak matches.
+
+Final note for the participants of the Candidate Discovery & Ranking Challenge
+
+The wrong answer to this JD is finding candidates whose profiles contain the most product-management keywords.
+
+That's a trap.
+
+The right answer is understanding what the role actually requires.
+
+A candidate who has never used the phrase "product strategy" but has successfully launched and scaled customer-facing products may be an excellent fit.
+
+A candidate with every PM buzzword imaginable but no evidence of ownership, customer interaction, or measurable impact may not be.
+
+Your ranking system should also account for behavioral signals.
+
+A perfect-on-paper candidate who hasn't logged in for months and never responds to recruiters is less valuable than a slightly weaker candidate who is actively engaged and open to opportunities.
+
+For hiring purposes, availability matters.
+
+Good luck.

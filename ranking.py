@@ -4,15 +4,19 @@ from __future__ import annotations
 
 import pandas as pd
 
-FINAL_SCORE_WEIGHTS = {
-    "experience_score": 0.20,
-    "title_score": 0.20,
-    "behavior_score": 0.10,
-    "production_score": 0.10,
-    "technical_production_score": 0.15,
-    "retrieval_score": 0.25,
-}
 
+FINAL_SCORE_WEIGHTS = {
+    "dynamic_experience_score": 0.10,
+    "dynamic_title_score": 0.08,
+    "behavior_score": 0.08,
+    "production_score": 0.08,
+    "technical_production_score": 0.10,
+    "retrieval_score": 0.15,
+    "dynamic_jd_score": 0.20,
+    "activity_score": 0.08,
+    "trust_score": 0.05,
+    "skill_overlap_score": 0.08,
+}
 
 # Combine engineered features into the final score.
 def create_final_score(candidates: pd.DataFrame) -> pd.DataFrame:

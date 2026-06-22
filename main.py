@@ -11,11 +11,19 @@ from feature_engineering import (
     create_behavior_score,
     create_experience_score,
     create_retrieval_score,
+    create_dynamic_jd_score,
+    create_dynamic_experience_score,
+    create_dynamic_title_score,
     create_technical_production_score,
     create_title_score,
+    create_activity_score,
+    create_trust_score,
+    create_skill_overlap_score,
 )
+
 from ranking import create_final_score, get_top_candidates
 from utils import configure_logging, load_data
+import time 
 
 LOGGER = logging.getLogger(__name__)
 
@@ -39,12 +47,32 @@ def parse_args() -> argparse.Namespace:
         default=100,
         help="Number of ranked candidates to write.",
     )
+
+    parser.add_argument(
+    "--jd",
+    default="jd.txt",
+    help="Path to job description text file.",
+    )
     return parser.parse_args()
 
 
 # Run feature engineering, ranking, and CSV export.
-def run_pipeline(input_path: str, output_path: str, top_n: int) -> None:
+def run_pipeline(input_path: str, output_path: str, top_n: int, jd_path: str,) -> None:
     candidates = load_data(input_path)
+    start_time = time.time()
+
+    LOGGER.info("Loading job description...")
+
+    jd_text = Path(jd_path).read_text(
+        encoding="utf-8"
+    )
+    candidates.attrs["jd_text"] = jd_text
+
+
+    LOGGER.info(
+        "Loaded JD with %s characters",
+        len(jd_text),
+    )
 
     LOGGER.info("Building candidate text...")
     candidates = build_candidate_text(candidates)
@@ -53,13 +81,48 @@ def run_pipeline(input_path: str, output_path: str, top_n: int) -> None:
     candidates = create_experience_score(candidates)
 
     LOGGER.info("Calculating title scores...")
-    candidates = create_title_score(candidates)
+    candidates = create_title_score(candidates,jd_text,)
+
+
+    LOGGER.info(
+    "Calculating dynamic title scores..."
+    )
+
+    candidates = create_dynamic_title_score(
+    candidates,
+    jd_text,
+    )
 
     LOGGER.info("Calculating behavior scores...")
     candidates = create_behavior_score(candidates)
 
     LOGGER.info("Calculating retrieval scores...")
     candidates = create_retrieval_score(candidates)
+
+    LOGGER.info("Calculating dynamic JD scores...")
+    candidates = create_dynamic_jd_score(candidates, jd_text)
+
+
+    LOGGER.info(
+    "Calculating dynamic experience scores..."
+    )
+
+    candidates = create_dynamic_experience_score(
+        candidates,
+        jd_text,
+    )
+
+    LOGGER.info("Calculating activity scores...")
+    candidates = create_activity_score(candidates)
+
+    LOGGER.info("Calculating trust scores...")
+    candidates = create_trust_score(candidates)
+
+    LOGGER.info("Calculating skill overlap scores...")
+    candidates = create_skill_overlap_score(
+        candidates,
+        jd_text,
+    )
 
     LOGGER.info("Calculating technical production scores...")
     candidates = create_technical_production_score(candidates)
@@ -80,7 +143,11 @@ def run_pipeline(input_path: str, output_path: str, top_n: int) -> None:
         "production_score",
         "technical_production_score",
         "retrieval_score",
-        "final_score",
+        "dynamic_jd_score",
+        "dynamic_experience_score",
+        "activity_score",
+        "trust_score",
+        "skill_overlap_score",
     ]
 
     output_file = Path(output_path)
@@ -95,11 +162,21 @@ def run_pipeline(input_path: str, output_path: str, top_n: int) -> None:
         output_file,
     )
 
+    LOGGER.info(
+    "Total Runtime: %.2f minutes",
+    (time.time() - start_time) / 60,
+    )
+
 # Execute the pipeline from the CLI.
 def main() -> None:
     configure_logging()
     args = parse_args()
-    run_pipeline(args.input, args.output, args.top_n)
+    run_pipeline(
+    args.input,
+    args.output,
+    args.top_n,
+    args.jd,
+    )
 
 
 if __name__ == "__main__":

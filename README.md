@@ -197,7 +197,7 @@ Examples:
 
 ---
 
-## 👥 Team Alpha Members
+## 👥 Team MCA_Heist Members
 * **Anupriya Ranjan (Data):** JD Intelligence, relevance rubrics, and data processing.
 * **Lakshman Kumar (Scoring):** Feature engineering, candidate scoring, and ranking engine.
 * **Divyanshu Tiwari (Packaging & Reproducibility):** Pipeline assembly, validation logic, templates, and reproducibility verification.

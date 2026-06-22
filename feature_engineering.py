@@ -4,11 +4,16 @@ from __future__ import annotations
 
 import re
 from collections.abc import Sequence
-
+from collections import Counter
 import pandas as pd
 
 from utils import career_descriptions, safe_text
-
+from jd_utils import (
+    extract_jd_keywords,
+    extract_experience_range,
+    extract_jd_titles,
+)
+from datetime import datetime
 # Configurable scoring constants.
 STRONG_TITLE_MATCHES = {
     "Recommendation Systems Engineer",
@@ -110,6 +115,9 @@ KEYWORD_GROUPS = {
     ],
 }
 
+
+
+
 STRONG_PRODUCTION_SIGNALS = [
     "shipped",
     "deployed",
@@ -174,6 +182,8 @@ KEYWORD_PATTERNS = {
     ]
     for count_column, keywords in KEYWORD_GROUPS.items()
 }
+# Placeholder for dynamic JD patterns (populated when dynamic JD keywords are extracted).
+JD_DYNAMIC_PATTERNS: dict[str, list[re.Pattern[str]]] = {}
 STRONG_PRODUCTION_PATTERNS = [
     re.compile(rf"(?<!\w){re.escape(signal)}(?!\w)", flags=re.IGNORECASE)
     for signal in STRONG_PRODUCTION_SIGNALS
@@ -201,7 +211,7 @@ def build_candidate_text(candidates: pd.DataFrame) -> pd.DataFrame:
         + candidates["profile_headline"].apply(safe_text)
         + " "
         + candidates["career_history"].apply(career_descriptions)
-    ).str.strip()
+    ).str.lower().str.strip()
     return candidates
 
 
@@ -222,12 +232,50 @@ def create_experience_score(candidates: pd.DataFrame) -> pd.DataFrame:
     return candidates
 
 
-# Score current-title relevance from configured buckets.
-def create_title_score(candidates: pd.DataFrame) -> pd.DataFrame:
-    """Score current title relevance using the notebook title buckets."""
-    candidates["title_score"] = candidates["profile_current_title"].map(TITLE_SCORE_MAP).fillna(0.0)
-    return candidates
+# Score current-title 
+def create_title_score(
+    candidates: pd.DataFrame,
+    jd_text: str,
+) -> pd.DataFrame:
 
+    jd_keywords = set(
+        extract_jd_keywords(jd_text)
+    )
+
+    def score(title):
+
+        title_words = set(
+            safe_text(title)
+            .lower()
+            .split()
+        )
+
+        overlap = len(
+            jd_keywords.intersection(
+                title_words
+            )
+        )
+
+        if overlap >= 3:
+            return 1.0
+
+        if overlap == 2:
+            return 0.8
+
+        if overlap == 1:
+            return 0.5
+
+        return 0.0
+
+    candidates["title_score"] = (
+        candidates[
+            "profile_current_title"
+        ]
+        .fillna("")
+        .apply(score)
+    )
+
+    return candidates
 
 # Combine behavioral signals into a single score.
 def create_behavior_score(candidates: pd.DataFrame) -> pd.DataFrame:
@@ -252,13 +300,55 @@ def create_behavior_score(candidates: pd.DataFrame) -> pd.DataFrame:
 
 
 # Count retrieval keywords and normalize the weighted score.
-def create_retrieval_score(candidates: pd.DataFrame) -> pd.DataFrame:
-    """Create keyword-count retrieval score features."""
-    keyword_counts = pd.DataFrame.from_records(
-        candidates["candidate_text"].map(_count_all_keyword_groups),
-        index=candidates.index,
+def create_retrieval_score(
+    candidates: pd.DataFrame
+) -> pd.DataFrame:
+
+    text_series = (
+        candidates["candidate_text"]
+        .str.lower()
+        .fillna("")
     )
-    candidates[list(KEYWORD_PATTERNS)] = keyword_counts[list(KEYWORD_PATTERNS)]
+
+    candidates["retrieval_keyword_count"] = (
+       text_series.str.count("retrieval")
+       +
+       text_series.str.count("search")
+       +
+       text_series.str.count("rag")
+    )
+
+    candidates["embedding_keyword_count"] = (
+       text_series.str.count("embedding")
+       +
+      text_series.str.count("embeddings")
+    )
+
+    candidates["vector_db_keyword_count"] = (
+       text_series.str.count("faiss")
+       +
+       text_series.str.count("pinecone")
+       +
+       text_series.str.count("qdrant")
+    )
+
+    candidates["llm_keyword_count"] = (
+       text_series.str.count("llm")
+        +
+       text_series.str.count("gpt")
+       +
+       text_series.str.count("langchain")
+    )
+
+    candidates["evaluation_keyword_count"] = (
+       text_series.str.count("evaluation")
+       +
+       text_series.str.count("benchmark")
+    )
+
+    candidates[list(KEYWORD_PATTERNS)] = candidates[
+        list(KEYWORD_PATTERNS)
+    ]
 
     weighted_score = (
         5 * candidates["retrieval_keyword_count"]
@@ -268,12 +358,201 @@ def create_retrieval_score(candidates: pd.DataFrame) -> pd.DataFrame:
         + 2 * candidates["llm_keyword_count"]
     )
 
-    candidates["total_keyword_count"] = candidates[FINAL_KEYWORD_COUNT_COLUMNS].sum(axis=1)
-    max_weighted_score = weighted_score.max()
-    candidates["retrieval_score"] = (
-        weighted_score / max_weighted_score if max_weighted_score else 0.0
+    candidates["total_keyword_count"] = (
+        candidates[
+            FINAL_KEYWORD_COUNT_COLUMNS
+        ].sum(axis=1)
     )
+
+    max_weighted_score = weighted_score.max()
+
+    base_score = (
+        weighted_score / max_weighted_score
+        if max_weighted_score > 0
+        else 0.0
+    )
+
+    # Dynamic JD retrieval contribution
+
+    jd_keywords = set(
+        extract_jd_keywords(
+            candidates.attrs.get(
+                "jd_text",
+                ""
+            )
+        )
+    )
+
+    if jd_keywords:
+
+        dynamic_count = (
+            candidates["candidate_text"]
+            .str.lower()
+            .str.split()
+            .apply(
+                lambda words:
+                len(
+                    jd_keywords.intersection(
+                        words
+                    )
+                )
+            )
+        )
+
+        max_dynamic = dynamic_count.max()
+
+        dynamic_score = (
+            dynamic_count / max_dynamic
+            if max_dynamic > 0
+            else 0.0
+        )
+
+        candidates["retrieval_score"] = (
+            0.5 * base_score
+            +
+            0.5 * dynamic_score
+        )
+
+    else:
+
+        candidates["retrieval_score"] = (
+            base_score
+        )
+
     return candidates
+
+def create_dynamic_jd_score(
+    candidates: pd.DataFrame,
+    jd_text: str,
+) -> pd.DataFrame:
+    """
+    Fast dynamic JD matching.
+    """
+
+    jd_keywords = extract_jd_keywords(jd_text)
+
+    if not jd_keywords:
+        candidates["dynamic_jd_score"] = 0.0
+        return candidates
+
+    jd_keywords = [
+        kw.lower()
+        for kw in jd_keywords[:30]
+    ]
+
+
+    # Single regex instead of 30 regex scans
+    pattern = r"\b(?:{})\b".format(
+        "|".join(
+            map(
+                re.escape,
+                jd_keywords,
+            )
+        )
+    )
+
+    counts = (
+        candidates["candidate_text"]
+        .str.lower()
+        .str.count(pattern)
+    )
+
+    max_count = counts.max()
+
+    candidates["dynamic_jd_score"] = (
+        counts / max_count
+        if max_count > 0
+        else 0.0
+    )
+
+    return candidates
+
+
+
+def create_dynamic_experience_score(
+    candidates: pd.DataFrame,
+    jd_text: str,
+) -> pd.DataFrame:
+
+    min_exp, max_exp = extract_experience_range(jd_text)
+
+    years = candidates["profile_years_of_experience"]
+
+    candidates["dynamic_experience_score"] = 0.2
+
+    candidates.loc[
+        years.between(min_exp, max_exp),
+        "dynamic_experience_score",
+    ] = 1.0
+
+    candidates.loc[
+        (
+            (years >= min_exp - 1)
+            & (years < min_exp)
+        )
+        |
+        (
+            (years > max_exp)
+            & (years <= max_exp + 1)
+        ),
+        "dynamic_experience_score",
+    ] = 0.8
+
+    candidates.loc[
+        (
+            (years >= min_exp - 2)
+            & (years < min_exp - 1)
+        )
+        |
+        (
+            (years > max_exp + 1)
+            & (years <= max_exp + 3)
+        ),
+        "dynamic_experience_score",
+    ] = 0.5
+
+    return candidates
+
+
+def create_dynamic_title_score(
+    candidates: pd.DataFrame,
+    jd_text: str,
+) -> pd.DataFrame:
+
+    jd_titles = extract_jd_titles(jd_text)
+
+    if not jd_titles:
+        candidates["dynamic_title_score"] = (
+            candidates["title_score"]
+        )
+        return candidates
+
+    def score(title):
+
+        title = safe_text(title).lower()
+
+        for jd_title in jd_titles:
+
+            if jd_title == title:
+                return 1.0
+
+            if (
+                jd_title in title
+                or
+                title in jd_title
+            ):
+                return 0.8
+
+        return 0.2
+
+    candidates["dynamic_title_score"] = (
+        candidates[
+            "profile_current_title"
+        ].apply(score)
+    )
+
+    return candidates
+
 
 
 # Score production evidence and technical production proximity.
@@ -346,5 +625,167 @@ def _count_production_signals(text: str) -> dict[str, int]:
 
 
 # Count matches across precompiled regex patterns.
-def _count_compiled_patterns(text: str, patterns: Sequence[re.Pattern[str]]) -> int:
-    return sum(len(pattern.findall(text)) for pattern in patterns)
+def _count_compiled_patterns(
+    text,
+    patterns,
+) -> int:
+    
+    count = 0
+
+    for pattern in patterns:
+
+        if pattern.search(text):
+            count += 1
+
+    return count
+
+
+def _count_dynamic_keywords(text: str) -> dict[str, int]:
+    cleaned_text = safe_text(text)
+
+    return {
+        count_column: _count_compiled_patterns(
+            cleaned_text,
+            patterns,
+        )
+        for count_column, patterns in JD_DYNAMIC_PATTERNS.items()
+    }
+
+def create_activity_score(
+    candidates: pd.DataFrame,
+) -> pd.DataFrame:
+
+    today = pd.Timestamp.today()
+
+    last_active_days = (
+        today -
+        pd.to_datetime(
+            candidates[
+                "redrob_signals_last_active_date"
+            ]
+        )
+    ).dt.days
+
+    recency_score = (
+        1 -
+        (last_active_days / last_active_days.max())
+    ).clip(0, 1)
+
+    applications_score = (
+        candidates[
+            "redrob_signals_applications_submitted_30d"
+        ]
+        /
+        candidates[
+            "redrob_signals_applications_submitted_30d"
+        ].max()
+    ).fillna(0)
+
+    search_score = (
+        candidates[
+            "redrob_signals_search_appearance_30d"
+        ]
+        /
+        candidates[
+            "redrob_signals_search_appearance_30d"
+        ].max()
+    ).fillna(0)
+
+    saved_score = (
+        candidates[
+            "redrob_signals_saved_by_recruiters_30d"
+        ]
+        /
+        candidates[
+            "redrob_signals_saved_by_recruiters_30d"
+        ].max()
+    ).fillna(0)
+
+    candidates["activity_score"] = (
+        0.4 * recency_score
+        + 0.2 * applications_score
+        + 0.2 * search_score
+        + 0.2 * saved_score
+    )
+
+    return candidates
+
+
+def create_trust_score(
+    candidates: pd.DataFrame,
+) -> pd.DataFrame:
+
+    candidates["trust_score"] = (
+
+        candidates[
+            "redrob_signals_verified_email"
+        ].astype(float)
+
+        +
+
+        candidates[
+            "redrob_signals_verified_phone"
+        ].astype(float)
+
+        +
+
+        candidates[
+            "redrob_signals_linkedin_connected"
+        ].astype(float)
+
+        +
+
+        (
+            candidates[
+                "redrob_signals_profile_completeness_score"
+            ] / 100
+        )
+
+    ) / 4
+
+    return candidates
+
+
+def create_skill_overlap_score(
+    candidates: pd.DataFrame,
+    jd_text: str,
+) -> pd.DataFrame:
+
+    jd_keywords = set(
+        extract_jd_keywords(jd_text)
+    )
+
+    def score(skills):
+
+        candidate_skills = {
+            safe_text(
+                skill.get(
+                    "name",
+                    ""
+                )
+            ).lower()
+
+            for skill in skills
+        }
+
+        overlap = (
+            jd_keywords &
+            candidate_skills
+        )
+
+        if len(jd_keywords) == 0:
+            return 0.0
+
+        return (
+            len(overlap)
+            /
+            len(jd_keywords)
+        )
+
+    candidates[
+        "skill_overlap_score"
+    ] = candidates[
+        "skills"
+    ].apply(score)
+
+    return candidates
