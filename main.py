@@ -19,6 +19,7 @@ from feature_engineering import (
     create_activity_score,
     create_trust_score,
     create_skill_overlap_score,
+    create_why_selected,
 )
 
 from ranking import create_final_score, get_top_candidates
@@ -130,8 +131,11 @@ def run_pipeline(input_path: str, output_path: str, top_n: int, jd_path: str,) -
     LOGGER.info("Calculating final scores...")
     candidates = create_final_score(candidates)
 
+    candidates = create_why_selected(candidates)
+
     LOGGER.info("Selecting top %s candidates...", top_n)
     top_candidates = get_top_candidates(candidates, limit=top_n)
+    top_candidates = top_candidates.round(3)
 
     output_columns = [
         "candidate_id",
@@ -148,6 +152,7 @@ def run_pipeline(input_path: str, output_path: str, top_n: int, jd_path: str,) -
         "activity_score",
         "trust_score",
         "skill_overlap_score",
+        "why_selected",
     ]
 
     output_file = Path(output_path)

@@ -789,3 +789,41 @@ def create_skill_overlap_score(
     ].apply(score)
 
     return candidates
+
+def create_why_selected(candidates: pd.DataFrame) -> pd.DataFrame:
+
+    def explain(row):
+
+        reasons = []
+
+        if row["skill_overlap_score"] >= 0.5:
+            reasons.append("Strong skill match")
+
+        if row["dynamic_experience_score"] >= 0.8:
+            reasons.append(
+                f"{row['profile_years_of_experience']} years relevant experience"
+            )
+
+        if row["title_score"] >= 0.8:
+            reasons.append("Relevant job title")
+
+        if row["retrieval_score"] >= 0.7:
+            reasons.append("Strong keyword match")
+
+        if row["activity_score"] >= 0.7:
+            reasons.append("Highly active candidate")
+
+        if row["trust_score"] >= 0.7:
+            reasons.append("Verified profile")
+
+        if not reasons:
+            reasons.append("General profile match")
+
+        return ", ".join(reasons[:3])
+
+    candidates["why_selected"] = candidates.apply(
+        explain,
+        axis=1,
+    )
+
+    return candidates
