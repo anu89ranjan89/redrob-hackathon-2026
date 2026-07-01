@@ -16,21 +16,22 @@ CANDIDATE_ID_PATTERN = re.compile(r"^CAND_[0-9]{7}$")
 EXPECTED_DATA_ROWS = 100
 
 
-def validate_submission(df: pd.DataFrame) -> None:
+def validate_submission(df: pd.DataFrame, expected_rows: int = 100) -> None:
     """
     Strictly validates a hackathon submission DataFrame against official constraints.
 
     Checks performed:
     1. Exact column names and ordering: candidate_id, rank, score, reasoning.
-    2. Exactly 100 rows.
+    2. Exactly expected_rows rows.
     3. candidate_id matches CAND_XXXXXXX (7 digits) and values are unique.
-    4. rank values are integers 1 to 100 and appear exactly once.
+    4. rank values are integers 1 to expected_rows and appear exactly once.
     5. score is a numeric float type.
     6. score values are non-increasing by rank (monotonic decreasing).
     7. Tie-breaker rule: if adjacent ranks have equal scores, candidate_id must be in ascending order.
 
     Parameters:
         df (pd.DataFrame): Submission DataFrame to validate.
+        expected_rows (int): Expected number of data rows.
 
     Raises:
         AssertionError: If any of the constraints are violated, detailing all failures.
@@ -49,9 +50,9 @@ def validate_submission(df: pd.DataFrame) -> None:
 
     # 2. Row count check
     n = len(df)
-    if n != EXPECTED_DATA_ROWS:
+    if n != expected_rows:
         errors.append(
-            f"After the header (row 1), there must be exactly {EXPECTED_DATA_ROWS} "
+            f"After the header (row 1), there must be exactly {expected_rows} "
             f"data rows; found {n}."
         )
 
@@ -89,7 +90,7 @@ def validate_submission(df: pd.DataFrame) -> None:
         # Check rank
         rank = None
         if rank_val is None or pd.isna(rank_val):
-            errors.append(f"Row {row_num}: rank must be an integer (1–100).")
+            errors.append(f"Row {row_num}: rank must be an integer (1–{expected_rows}).")
         else:
             try:
                 # To match type checks and handle float representation (e.g. 1.0)
@@ -100,9 +101,9 @@ def validate_submission(df: pd.DataFrame) -> None:
                 else:
                     rank_int = int(rank_val)
 
-                if not 1 <= rank_int <= 100:
+                if not 1 <= rank_int <= expected_rows:
                     errors.append(
-                        f"Row {row_num}: rank must be between 1 and 100."
+                        f"Row {row_num}: rank must be between 1 and {expected_rows}."
                     )
                 elif rank_int in seen_ranks:
                     errors.append(f"Row {row_num}: duplicate rank {rank_int}.")
@@ -111,7 +112,7 @@ def validate_submission(df: pd.DataFrame) -> None:
                     rank = rank_int
             except (ValueError, TypeError, OverflowError):
                 errors.append(
-                    f"Row {row_num}: rank must be an integer (1–100)."
+                    f"Row {row_num}: rank must be an integer (1–{expected_rows})."
                 )
 
         # Check score
@@ -128,10 +129,10 @@ def validate_submission(df: pd.DataFrame) -> None:
             by_rank.append((rank, score, cid))
 
     # 4. Rank completeness check
-    missing = set(range(1, 101)) - seen_ranks
+    missing = set(range(1, expected_rows + 1)) - seen_ranks
     if missing:
         errors.append(
-            f"Each rank 1–100 must appear exactly once; missing: {sorted(list(missing))}"
+            f"Each rank 1–{expected_rows} must appear exactly once; missing: {sorted(list(missing))}"
         )
 
     # 5. Non-increasing score by rank order checks

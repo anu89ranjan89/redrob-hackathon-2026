@@ -115,7 +115,7 @@ st.markdown(
     f"""
 <div class="hero">
     <h1>🚀 AI Matchmaker Pro</h1>
-    <p>Hybrid AI Ranking Engine for Candidate Evaluation • Hackathon Team MCA Heist</p>
+    <p>Hybrid AI Ranking Engine for Candidate Evaluation • Hackathon Team MCAHeist</p>
     <small>Last run: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</small>
 </div>
 """,
@@ -225,25 +225,65 @@ if run_clicked:
 
             st.subheader("🏆 Candidate Leaderboard")
 
+            # Dynamically load sample candidates to match names on the fly
+            names_map = {}
+            import json
+            if os.path.exists("data/sample_candidates.json"):
+                try:
+                    with open("data/sample_candidates.json", "r", encoding="utf-8") as f:
+                        cand_details = json.load(f)
+                    for item in cand_details:
+                        cid = item.get("candidate_id")
+                        profile = item.get("profile", {})
+                        name = profile.get("anonymized_name", "Unknown Name")
+                        if cid:
+                            names_map[cid] = name
+                except Exception as e:
+                    st.warning(f"Could not load candidate names: {e}")
+
+            # Merge names into display DataFrame
+            df["CANDIDATE NAME"] = df["candidate_id"].map(names_map).fillna("Unknown Name")
+
+            # Rename columns to strictly match UI leaderboard requirements
+            df_display = df.rename(columns={
+                "rank": "RANK",
+                "candidate_id": "CANDIDATE ID",
+                "score": "SCORE",
+                "reasoning": "REASONING"
+            })
+
+            # Reorder columns to RANK, CANDIDATE ID, CANDIDATE NAME, SCORE, REASONING
+            df_display = df_display[["RANK", "CANDIDATE ID", "CANDIDATE NAME", "SCORE", "REASONING"]]
+
+            # Display leaderboard without pandas index
             st.dataframe(
-                df,
+                df_display,
                 use_container_width=True,
                 hide_index=True,
-                column_config={
-                    "candidate_id": "Candidate ID",
-                    "rank": st.column_config.NumberColumn("Rank"),
-                    "score": st.column_config.NumberColumn("Score", format="%.3f"),
-                    "reasoning": st.column_config.TextColumn("AI Reasoning"),
-                },
+            )
+
+            # Excel download button using openpyxl
+            import io
+            excel_buffer = io.BytesIO()
+            with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
+                df_display.to_excel(writer, index=False, sheet_name="Leaderboard")
+            excel_data = excel_buffer.getvalue()
+
+            st.download_button(
+                label="📥 Download Leaderboard as Excel (.xlsx)",
+                data=excel_data,
+                file_name="candidate_leaderboard.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
             )
 
             # ---------------- DETAILS SECTION ----------------
             if show_reasoning:
                 st.markdown("### 🧾 Deep Dive Insights")
 
-                for i, row in df.head(5).iterrows():
-                    with st.expander(f"Candidate {row['candidate_id']} — Score {row['score']:.3f}"):
-                        st.write(row.get("reasoning", "No reasoning available"))
+                for i, row in df_display.head(5).iterrows():
+                    with st.expander(f"Candidate {row['CANDIDATE ID']} ({row['CANDIDATE NAME']}) — Score {row['SCORE']:.3f}"):
+                        st.write(row.get("REASONING", "No reasoning available"))
 
             if show_logs:
                 st.markdown("### 🖥 Execution Logs")

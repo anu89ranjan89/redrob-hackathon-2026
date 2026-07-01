@@ -16,6 +16,22 @@ import pandas as pd
 
 from scripts.validate import validate_submission
 from scripts.reasoning import generate_reasoning
+from feature_engineering import (
+    build_candidate_text,
+    create_experience_score,
+    create_title_score,
+    create_dynamic_title_score,
+    create_behavior_score,
+    create_retrieval_score,
+    create_dynamic_jd_score,
+    create_dynamic_experience_score,
+    create_activity_score,
+    create_trust_score,
+    create_skill_overlap_score,
+    create_technical_production_score,
+    create_why_selected,
+)
+from ranking import create_final_score
 
 
 def set_seeds(seed: int = 42) -> None:
@@ -53,8 +69,9 @@ def main() -> None:
     # Set seeds for reproducibility
     set_seeds()
 
-    # 1. Print status messages and load input files
+    # 1. Load job description file
     print(f"[STATUS] Processing job description file: '{args.jd}'")
+    jd_content = ""
     if os.path.exists(args.jd):
         with open(args.jd, "r", encoding="utf-8") as f:
             jd_content = f.read()
@@ -63,15 +80,17 @@ def main() -> None:
         print(
             f"[WARNING] JD file '{args.jd}' not found. Proceeding with mock description."
         )
+        jd_content = "Looking for a Machine Learning Engineer with 5+ years of experience in search, retrieval systems, vector databases, LLMs, and evaluation."
 
+    # 2. Load candidate data file
     print(f"[STATUS] Processing candidate data file: '{args.input}'")
-    candidates = []
+    candidates_raw = []
     if os.path.exists(args.input):
         try:
             with open(args.input, "r", encoding="utf-8") as f:
-                candidates = json.load(f)
+                candidates_raw = json.load(f)
             print(
-                f"[STATUS] Successfully loaded {len(candidates)} candidates from JSON."
+                f"[STATUS] Successfully loaded {len(candidates_raw)} candidates from JSON."
             )
         except Exception as e:
             print(
@@ -80,90 +99,110 @@ def main() -> None:
             sys.exit(1)
     else:
         print(
-            f"[WARNING] Candidates file '{args.input}' not found. Generating entirely synthetic candidates."
+            f"[ERROR] Candidates file '{args.input}' not found. Cannot proceed.", file=sys.stderr
         )
+        sys.exit(1)
 
-    # 2. Generate mock Pandas DataFrame of 100 candidates
-    print("[STATUS] Generating ranked candidate database...")
+    # 3. Parse candidates supportively using pd.json_normalize
+    print("[STATUS] Parsing and normalizing candidate JSON data...")
+    candidates = pd.json_normalize(candidates_raw, sep="_")
 
-    used_candidates = []
-
-    for i in range(100):
-        # Use candidate data from JSON if available, otherwise generate mock data
-        if i < len(candidates):
-            cand = candidates[i]
-            cid = cand.get("candidate_id")
-
-            profile = cand.get("profile", {})
-            signals = cand.get("redrob_signals", {})
-
-            features = {
-                "years_of_experience": profile.get("years_of_experience"),
-                "current_title": profile.get("current_title"),
-                "profile_completeness_score": signals.get(
-                    "profile_completeness_score"
-                ),
-                "recruiter_response_rate": signals.get(
-                    "recruiter_response_rate"
-                ),
-                "willing_to_relocate": signals.get("willing_to_relocate"),
-                "github_activity_score": signals.get("github_activity_score"),
-            }
+    # Handle missing columns by pre-populating with safe defaults
+    required_cols = {
+        "profile_summary": "",
+        "profile_headline": "",
+        "profile_years_of_experience": 0.0,
+        "profile_current_title": "",
+        "redrob_signals_open_to_work_flag": False,
+        "redrob_signals_notice_period_days": 90,
+        "redrob_signals_offer_acceptance_rate": -1,
+        "redrob_signals_recruiter_response_rate": 0.0,
+        "redrob_signals_interview_completion_rate": 0.0,
+        "redrob_signals_last_active_date": "2026-01-01",
+        "redrob_signals_applications_submitted_30d": 0,
+        "redrob_signals_search_appearance_30d": 0,
+        "redrob_signals_saved_by_recruiters_30d": 0,
+        "redrob_signals_verified_email": False,
+        "redrob_signals_verified_phone": False,
+        "redrob_signals_linkedin_connected": False,
+        "redrob_signals_profile_completeness_score": 0.0,
+    }
+    for col, default_val in required_cols.items():
+        if col not in candidates.columns:
+            candidates[col] = default_val
         else:
-            cid = f"CAND_{i+1:07d}"
-            features = {
-                "years_of_experience": round(random.uniform(2.0, 15.0), 1),
-                "current_title": random.choice(
-                    ["Backend Engineer", "ML Engineer", "HR Manager"]
-                ),
-                "profile_completeness_score": round(
-                    random.uniform(50.0, 100.0), 1
-                ),
-                "recruiter_response_rate": round(random.uniform(0.1, 0.9), 2),
-                "willing_to_relocate": random.choice([True, False]),
-                "github_activity_score": random.randint(0, 100),
-            }
+            candidates[col] = candidates[col].fillna(default_val)
 
-        used_candidates.append((cid, features))
+    if "skills" not in candidates.columns:
+        candidates["skills"] = [[] for _ in range(len(candidates))]
+    else:
+        candidates["skills"] = candidates["skills"].apply(lambda x: x if isinstance(x, list) else [])
 
-    candidate_ids = [item[0] for item in used_candidates]
-    ranks = list(range(1, 101))
+    if "career_history" not in candidates.columns:
+        candidates["career_history"] = [[] for _ in range(len(candidates))]
+    else:
+        candidates["career_history"] = candidates["career_history"].apply(lambda x: x if isinstance(x, list) else [])
 
-    # Generate scores strictly sorted in descending order (monotonic decreasing)
-    scores = [1.0 - i * 0.008 for i in range(1, 101)]
+    # Set jd_text attribute for keyword matching
+    candidates.attrs["jd_text"] = jd_content
 
-    # 3. Apply the reasoning generator to populate a reasoning column
-    reasoning_list = []
-    for cid, features in used_candidates:
-        reasoning_text = generate_reasoning(features)
-        reasoning_list.append(reasoning_text)
+    # 4. Run the full ML scoring pipeline
+    print("[STATUS] Executing ML feature engineering and scoring pipeline...")
+    candidates = build_candidate_text(candidates)
+    candidates = create_experience_score(candidates)
+    candidates = create_title_score(candidates, jd_content)
+    candidates = create_dynamic_title_score(candidates, jd_content)
+    candidates = create_behavior_score(candidates)
+    candidates = create_retrieval_score(candidates)
+    candidates = create_dynamic_jd_score(candidates, jd_content)
+    candidates = create_dynamic_experience_score(candidates, jd_content)
+    candidates = create_activity_score(candidates)
+    candidates = create_trust_score(candidates)
+    candidates = create_skill_overlap_score(candidates, jd_content)
+    candidates = create_technical_production_score(candidates)
+    candidates = create_final_score(candidates)
+    candidates = create_why_selected(candidates)
 
-    # Build the final DataFrame
-    df = pd.DataFrame(
-        {
-            "candidate_id": candidate_ids,
-            "rank": ranks,
-            "score": scores,
-            "reasoning": reasoning_list,
-        }
-    )
+    # 5. Sort candidates (descending by score, ascending by candidate_id for tie-breaking)
+    print("[STATUS] Ranking candidates and applying tie-breaker rules...")
+    candidates = candidates.sort_values(
+        by=["final_score", "candidate_id"],
+        ascending=[False, True]
+    ).reset_index(drop=True)
 
-    # 4. Call validate_submission(df) on the final DataFrame
-    print("[STATUS] Running validate_submission on final DataFrame...")
+    # 6. Select the top candidates (up to 100)
+    limit = min(100, len(candidates))
+    top_candidates = candidates.head(limit).copy()
+    top_candidates["rank"] = range(1, limit + 1)
+    top_candidates["score"] = top_candidates["final_score"]
+
+    # 7. Generate reasoning only for the selected top candidates
+    print(f"[STATUS] Generating explainable reasoning for top {limit} candidates...")
+    reasonings = []
+    for _, row in top_candidates.iterrows():
+        features = row.to_dict()
+        reasonings.append(generate_reasoning(features))
+    top_candidates["reasoning"] = reasonings
+
+    # 8. Format the final output to strictly contain candidate_id, rank, score, reasoning
+    df_final = top_candidates[["candidate_id", "rank", "score", "reasoning"]].copy()
+
+    # 9. Call validate_submission(df_final, expected_rows=limit)
+    print(f"[STATUS] Validating final ranked candidate submission (expected_rows={limit})...")
     try:
-        validate_submission(df)
+        validate_submission(df_final, expected_rows=limit)
     except AssertionError as e:
         print(f"[ERROR] DataFrame validation failed:\n{e}", file=sys.stderr)
         sys.exit(1)
 
-    # 5. Export to the path specified by --output (ensure directory exists)
+    # 10. Export to specified output path
     output_path = args.output
     output_dir = os.path.dirname(output_path)
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
         print(f"[STATUS] Ensured output directory '{output_dir}' exists.")
 
-    df.to_csv(output_path, index=False)
+    df_final.to_csv(output_path, index=False)
     print(f"[STATUS] Pipeline run SUCCESS. Output saved to: '{output_path}'")
 
 

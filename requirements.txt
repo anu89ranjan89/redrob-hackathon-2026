@@ -10,3 +10,4 @@ joblib
 jinja2
 pyyaml
 streamlit
+openpyxl

@@ -1,9 +1,8 @@
-# 🚀 Redrob Hackathon 2026 — Team MCA_Heist
-# Redrob Hackathon 2026 – Candidate Ranking System
+# 🚀 Redrob Hackathon 2026 — Team MCAHeist
 
 A production-style Python implementation of the candidate ranking pipeline developed from the feature engineering notebook.
 
-Welcome to the official repository of **MCA_Heist Team** for the Redrob Hackathon 2026. This project implements a high-performance, deterministic candidate ranking system that prioritizes matching accuracy, behavioral signal intelligence, and explainable AI.
+Welcome to the official repository of **MCAHeist Team** for the Redrob Hackathon 2026. This project implements a high-performance, deterministic candidate ranking system that prioritizes matching accuracy, behavioral signal intelligence, and explainable AI.
 The system processes candidate profiles, engineers ranking features, computes relevance scores, and produces a ranked list of candidates for AI/ML-focused roles.
 
 ---
@@ -58,7 +57,6 @@ The system processes candidate profiles, engineers ranking features, computes re
 ### `feature_engineering.py`
 
 Generates all ranking features:
-
 - Candidate text construction
 - Experience scoring
 - Title relevance scoring
@@ -70,7 +68,6 @@ Generates all ranking features:
 ### `ranking.py`
 
 Responsible for:
-
 - Final score calculation
 - Candidate ranking
 - Top-N candidate selection
@@ -78,7 +75,6 @@ Responsible for:
 ### `utils.py`
 
 Shared utilities:
-
 - JSONL loading
 - Logging configuration
 - Text cleaning
@@ -87,7 +83,6 @@ Shared utilities:
 ### `main.py`
 
 Pipeline entry point that:
-
 1. Loads candidate data
 2. Creates engineered features
 3. Computes final scores
@@ -120,11 +115,8 @@ python main.py
 ```
 
 This will:
-
 - Read: `data/candidate.jsonl`
 - Generate: `outputs/top_candidates.csv`
-
----
 
 ### Custom Input / Output
 
@@ -137,127 +129,86 @@ python main.py \
 
 ---
 
-## Ranking Features
+## Streamlit UI & CLI System Architecture
 
-### Experience Score
+The MCAHeist candidate ranking system is organized as a unified architecture that runs via a CLI orchestrator or a visual Streamlit web application:
 
-Targets candidates with approximately 5–9 years of experience.
+```text
+Job Description (JD) / Candidate Profiles
+                ↓
+      JD Intelligence Engine
+                ↓
+  Candidate Understanding Engine (Normalization)
+                ↓
+    Feature Engineering & Scoring
+                ↓
+      Honeypot/Anomaly Detector
+                ↓
+      Explainable Ranking Engine
+                ↓
+     Validated output (Top 100 Candidates)
+```
 
-### Title Score
-
-Scores current job titles based on relevance to:
-
-- Recommendation Systems
-- Search
-- Machine Learning
-- AI Engineering
-- Data Engineering
-- Backend Engineering
-
-### Behavior Score
-
-Combines:
-
-- Open-to-work status
-- Recruiter response rate
-- Notice period
-- Interview completion rate
-- Offer acceptance rate
-
-### Retrieval Score
-
-Keyword-based relevance score using:
-
-- Retrieval systems
-- Search systems
-- Embeddings
-- Vector databases
-- LLM tooling
-- Evaluation frameworks
-
-### Production Score
-
-Measures evidence of real-world delivery using signals such as:
-
-- Built
-- Shipped
-- Deployed
-- Led
-- Designed
-
-### Technical Production Score
-
-Measures technical production experience by identifying technical actions occurring near technical system concepts.
-
-Examples:
-
-- Built retrieval system
-- Designed ranking model
-- Shipped recommendation pipeline
+1. **CLI Orchestration (`run.py`)**: Executes the entire scoring pipeline end-to-end, sorts candidates descending by final score (and ascending by ID to resolve ties), generates natural language reasonings using the explainable reasoning engine, validates constraints, and outputs the final CSV.
+2. **Streamlit Application (`app.py`)**: Implements an interactive control panel dashboard ("AI Matchmaker Pro"). It invokes the CLI ranking pipeline, extracts names from candidate JSON data to merge them with scores on the fly, presents a beautiful leaderboard, and allows exporting the final leaderboard (with names) as an Excel (`.xlsx`) spreadsheet.
 
 ---
 
-## 👥 Team MCA_Heist Members
+## Ranking Features Dictionary
+
+### Technical Fit Features
+
+* **skill_overlap_score** (Weight: 0.08): Percentage overlap between JD skills and candidate skills (Range: 0.0–1.0).
+* **retrieval_score** (Weight: 0.15): Keyword-based relevance score measuring retrieval/search concepts (e.g. vector databases, embeddings, LLMs, RAG).
+* **dynamic_experience_score** (Weight: 0.10): Matches years of experience dynamically against the range specified in the JD.
+* **dynamic_title_score** (Weight: 0.08): Matches current title dynamically against titles specified in the JD.
+* **dynamic_jd_score** (Weight: 0.20): Matches candidates' profiles using a dynamic keyword matching regex derived directly from the job description.
+* **technical_production_score** (Weight: 0.10): Detects proximity matches between technical actions (e.g. built, shipped, deployed) and technical system concepts.
+
+### Recruitability & Behavioral Features
+
+* **behavior_score** (Weight: 0.08): Synthesizes open-to-work status, notice period (shorter notice is preferred), recruiter response rate, interview completion rate, and offer acceptance rate.
+* **production_score** (Weight: 0.08): Measures overall evidence of software delivery in production.
+
+### Activity Features
+
+* **activity_score** (Weight: 0.08): Derived from profile recency (last active days), applications submitted, and recruiter search appearances in the last 30/90 days.
+
+### Trust Features
+
+* **trust_score** (Weight: 0.05): Measures profile authenticity using verification signals (verified email, phone, connected LinkedIn, and profile completeness).
+
+---
+
+## Final Ranking Formula
+
+The final score integrates the engineered features using the following weights:
+
+$$
+\begin{aligned}
+\text{final\_score} = & \,\, 0.10 \times \text{dynamic\_experience\_score} \\
+& + 0.08 \times \text{dynamic\_title\_score} \\
+& + 0.08 \times \text{behavior\_score} \\
+& + 0.08 \times \text{production\_score} \\
+& + 0.10 \times \text{technical\_production\_score} \\
+& + 0.15 \times \text{retrieval\_score} \\
+& + 0.20 \times \text{dynamic\_jd\_score} \\
+& + 0.08 \times \text{activity\_score} \\
+& + 0.05 \times \text{trust\_score} \\
+& + 0.08 \times \text{skill\_overlap\_score}
+\end{aligned}
+$$
+
+All rankings are strictly deterministic and sorted in descending order of final score. In case of ties, the system breaks ties by sorting candidate IDs in ascending order.
+
+---
+
+## 👥 Team MCAHeist Members
+
 * **Anupriya Ranjan (Data):** JD Intelligence, relevance rubrics, and data processing.
 * **Lakshman Kumar (Scoring):** Feature engineering, candidate scoring, and ranking engine.
 * **Divyanshu Tiwari (Packaging & Reproducibility):** Pipeline assembly, validation logic, templates, and reproducibility verification.
 
 ---
+
 Built with 💙 for the Redrob Hackathon 2026.
-=======
-## Final Ranking Formula
-
-The final score preserves the notebook scoring logic:
-
-```text
-0.20 × experience_score
-+ 0.20 × title_score
-+ 0.10 × behavior_score
-+ 0.10 × production_score
-+ 0.15 × technical_production_score
-+ 0.25 × retrieval_score
-```
-
-No ranking weights or business rules were modified during the Python refactor.
-
----
-
-## Output
-
-The pipeline generates:
-
-```text
-outputs/top_candidates.csv
-```
-
-Columns include:
-
-- candidate_id
-- profile_current_title
-- profile_years_of_experience
-- experience_score
-- title_score
-- behavior_score
-- production_score
-- technical_production_score
-- retrieval_score
-- final_score
-
----
-
-## Performance
-
-Tested on datasets containing approximately 100,000 candidate profiles.
-
-Optimizations include:
-
-- Reduced DataFrame copying
-- Precompiled regular expressions
-- Vectorized Pandas operations where possible
-- Lower memory overhead during feature generation
-
----
-
-## Notes
-
-This implementation is a direct refactor of the notebook workflow into a maintainable production-style pipeline while preserving the original ranking behavior.
